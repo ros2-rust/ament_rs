@@ -5,6 +5,20 @@ use std::io::Read;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
+pub(crate) fn filter_path(path: impl AsRef<std::path::Path>) -> bool {
+    let path = path.as_ref();
+    path.is_file()
+        && path
+            .file_name()
+            .map(|file_name| {
+                file_name
+                    .to_str()
+                    .map(|s| !s.starts_with('.'))
+                    .unwrap_or(true)
+            })
+            .unwrap_or(false)
+}
+
 pub(crate) fn list_all_prefixes<'a>(
     resource_type: impl AsRef<str> + 'a,
     prefixes: impl IntoIterator<Item = impl AsRef<str> + 'a> + 'a,
@@ -34,13 +48,7 @@ pub(crate) fn list_all_prefixes_of_resources_disjointly<'a>(
             .min_depth(1)
             .max_depth(1)
             .into_iter()
-            .filter_entry(|e| {
-                e.file_type().is_file()
-                    && e.file_name()
-                        .to_str()
-                        .map(|s| !s.starts_with('.'))
-                        .unwrap_or(true)
-            })
+            .filter_entry(|e| filter_path(&e.path()))
             .filter_map(Result::ok)
             .map(move |entry| {
                 (
@@ -107,7 +115,7 @@ pub fn get_resource_from(
 ) -> Option<Result<(Vec<u8>, String), std::io::Error>> {
     list_all_prefixes(resource_type, prefixes)
         .map(|(prefix, path)| (prefix, path.join(resource_name.as_ref())))
-        .filter(|(_, path)| path.is_file())
+        .filter(|(_, path)| filter_path(path))
         .map(|(prefix, path)| {
             let mut buffer = vec![];
             std::fs::File::open(path)
@@ -131,7 +139,7 @@ pub fn find_resource_from(
 ) -> Option<String> {
     list_all_prefixes(resource_type, prefixes)
         .map(|(prefix, path)| (prefix, path.join(resource_name.as_ref())))
-        .filter(|(_, path)| path.is_file())
+        .filter(|(_, path)| filter_path(path))
         .map(|(prefix, _)| prefix)
         .nth(0)
 }
