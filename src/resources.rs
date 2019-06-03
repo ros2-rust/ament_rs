@@ -1,4 +1,3 @@
-use crate::get_search_paths;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::io::Read;
@@ -93,14 +92,14 @@ pub fn list_all_prefixes_of_resource<'a>(
         .map(|(_, prefix)| prefix)
 }
 
-pub fn get_resources_with_prefixes_from(
+pub fn get_resources_prefixes(
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
 ) -> HashMap<String, Vec<String>> {
     list_all_prefixes_of_resources(resource_type, prefixes)
 }
 
-pub fn get_resource_prefix_from(
+pub fn get_resource_prefix(
     resource_name: impl AsRef<str>,
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
@@ -108,31 +107,34 @@ pub fn get_resource_prefix_from(
     list_all_prefixes_of_resource(resource_name, resource_type, prefixes).nth(0)
 }
 
-pub fn get_resource_from(
+pub fn get_resource(
     resource_name: impl AsRef<str>,
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> Option<Result<(Vec<u8>, String), std::io::Error>> {
+) -> Option<(std::io::Result<Vec<u8>>, String)> {
     list_all_prefixes(resource_type, prefixes)
         .map(|(prefix, path)| (prefix, path.join(resource_name.as_ref())))
         .filter(|(_, path)| filter_path(path))
         .map(|(prefix, path)| {
             let mut buffer = vec![];
-            std::fs::File::open(path)
-                .and_then(|mut file| file.read_to_end(&mut buffer))
-                .map(|_| (buffer, prefix))
+            (
+                std::fs::File::open(path)
+                    .and_then(|mut file| file.read_to_end(&mut buffer))
+                    .map(|_| buffer),
+                prefix,
+            )
         })
         .nth(0)
 }
 
-pub fn get_resources_from(
+pub fn get_resources_prefix(
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
 ) -> HashMap<String, String> {
     list_prefix_of_resources(resource_type, prefixes).collect()
 }
 
-pub fn find_resource_from(
+pub fn find_resource(
     resource_name: impl AsRef<str>,
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
@@ -144,57 +146,10 @@ pub fn find_resource_from(
         .nth(0)
 }
 
-pub fn has_resource_from(
+pub fn has_resource(
     resource_name: impl AsRef<str>,
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
 ) -> bool {
-    find_resource_from(resource_name, resource_type, prefixes).is_some()
-}
-
-pub enum GetResourceError {
-    VarError(std::env::VarError),
-    IoError(std::io::Error),
-    ResourceNotFound,
-}
-
-pub fn get_resource(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-) -> Result<(Vec<u8>, String), GetResourceError> {
-    get_resource_from(
-        resource_name,
-        resource_type,
-        get_search_paths().map_err(GetResourceError::VarError)?,
-    )
-    .ok_or(GetResourceError::ResourceNotFound)
-    .and_then(|result| result.map_err(GetResourceError::IoError))
-}
-
-pub fn get_resources(
-    resource_type: impl AsRef<str>,
-) -> Result<HashMap<String, String>, std::env::VarError> {
-    Ok(get_resources_from(resource_type, get_search_paths()?))
-}
-
-pub fn find_resource(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-) -> Result<Option<String>, std::env::VarError> {
-    Ok(find_resource_from(
-        resource_name,
-        resource_type,
-        get_search_paths()?,
-    ))
-}
-
-pub fn has_resource(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-) -> Result<bool, std::env::VarError> {
-    Ok(has_resource_from(
-        resource_name,
-        resource_type,
-        get_search_paths()?,
-    ))
+    find_resource(resource_name, resource_type, prefixes).is_some()
 }

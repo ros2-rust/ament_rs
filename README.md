@@ -2,18 +2,11 @@
 
 This crate is a client for ament which is a system for cataloging and referencing resources distributed by software packages used by ROS2.
 
-## Naming conventions
-
-Functions with a name ending with `_from` take an additionnal `prefixes` argument.
-These functions also have a variant named without the `_from` ending which use the prefixes retrieved from the `AMENT_PREFIX_PATH` environment variable.
-
-Functions starting with `list_` return an iterator instead of a collection.
-
 ## Examples
 
 ```rust
 use ament_rs::*;
-println!("{:#?}", get_packages_with_prefixes());
+println!("{:#?}", Ament::new()?.get_packages_prefixes());
 ```
 
 This snippet will print a list of packages with the prefixes they were found in, depending of the value of the `AMENT_PREFIX_PATH` environment variable on your system.
