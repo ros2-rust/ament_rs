@@ -1,3 +1,6 @@
+[![crate.io](https://meritbadge.herokuapp.com/ament_rs)](https://crates.io/crates/ament_rs)
+[![docs.rs](https://docs.rs/ament_rs/badge.svg)](https://docs.rs/ament_rs/badge.svg)
+
 # ament_rs
 
 This crate is a client for ament which is a system for cataloging and referencing resources distributed by software packages used by ROS2.
@@ -28,3 +31,4 @@ This snippet will print a list of packages with the prefixes they were found in,
     ],
 }
 ```
+

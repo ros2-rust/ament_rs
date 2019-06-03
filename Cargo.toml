@@ -6,9 +6,16 @@ edition = "2018"
 description = "This crate is a client for ament which is a system for cataloging and referencing resources distributed by software packages used by ROS2."
 license = "ISC"
 repository = "https://github.com/lelongg/ament_rs"
+homepage = "https://github.com/lelongg/ament_rs"
+documentation = "https://docs.rs/ament_rs/"
 readme = "README.md"
 keywords = ["ament", "ros2", "ros"]
 categories = ["development-tools::build-utils", "filesystem", "science::robotics"]
+
+[badges]
+is-it-maintained-issue-resolution = { repository = "lelongg/ament_rs" }
+is-it-maintained-open-issues = { repository = "lelongg/ament_rs" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 walkdir = "2"
