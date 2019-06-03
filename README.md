@@ -2,7 +2,7 @@
 
 This crate is a client for ament which is a system for cataloging and referencing resources distributed by software packages used by ROS2.
 
-[![crate.io](https://meritbadge.herokuapp.com/ament_rs)](https://crates.io/crates/ament_rs)
+[![crate.io](https://img.shields.io/crates/v/ament_rs.svg)](https://crates.io/crates/ament_rs)
 [![docs.rs](https://docs.rs/ament_rs/badge.svg)](https://docs.rs/ament_rs)
 
 ## Examples
