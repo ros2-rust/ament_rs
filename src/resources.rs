@@ -104,7 +104,7 @@ pub fn get_resource_prefix(
     resource_type: impl AsRef<str>,
     prefixes: impl IntoIterator<Item = impl AsRef<str>>,
 ) -> Option<String> {
-    list_all_prefixes_of_resource(resource_name, resource_type, prefixes).nth(0)
+    list_all_prefixes_of_resource(resource_name, resource_type, prefixes).next()
 }
 
 pub fn get_resource(
@@ -124,7 +124,7 @@ pub fn get_resource(
                 prefix,
             )
         })
-        .nth(0)
+        .next()
 }
 
 pub fn get_resources_prefix(
@@ -143,7 +143,7 @@ pub fn find_resource(
         .map(|(prefix, path)| (prefix, path.join(resource_name.as_ref())))
         .filter(|(_, path)| filter_path(path))
         .map(|(prefix, _)| prefix)
-        .nth(0)
+        .next()
 }
 
 pub fn has_resource(
