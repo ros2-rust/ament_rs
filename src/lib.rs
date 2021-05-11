@@ -4,7 +4,11 @@
 //!
 //! ```
 //! use ament_rs::*;
+//! # fn main() -> Result<(), std::env::VarError> {
+//! # std::env::set_var("AMENT_PREFIX_PATH", "");
 //! println!("{:#?}", Ament::new()?.get_packages_prefixes());
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! This snippet will print a list of packages with the prefixes they were found in, depending of the value of the `AMENT_PREFIX_PATH` environment variable on your system.
