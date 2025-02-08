@@ -1,6 +1,6 @@
 [package]
 name = "ament_rs"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Gérald Lelong <gerald.lelong@easymov.fr>"]
 edition = "2018"
 description = "This crate is a client for ament which is a system for cataloging and referencing resources distributed by software packages used by ROS2."
