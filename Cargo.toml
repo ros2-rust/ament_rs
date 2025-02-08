@@ -10,7 +10,11 @@ homepage = "https://github.com/lelongg/ament_rs"
 documentation = "https://docs.rs/ament_rs/"
 readme = "README.md"
 keywords = ["ament", "ros2", "ros"]
-categories = ["development-tools::build-utils", "filesystem", "science::robotics"]
+categories = [
+    "development-tools::build-utils",
+    "filesystem",
+    "science::robotics",
+]
 
 [badges]
 is-it-maintained-issue-resolution = { repository = "lelongg/ament_rs" }
@@ -18,5 +22,5 @@ is-it-maintained-open-issues = { repository = "lelongg/ament_rs" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-walkdir = "2"
-itertools = "0.12.0"
+walkdir = "2.5.0"
+itertools = "0.14.0"
