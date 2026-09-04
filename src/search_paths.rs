@@ -26,9 +26,7 @@ pub fn get_search_paths_from_var(
 
 /// Returns the list of prefixes defined in the given string.
 pub fn get_search_paths_from(prefixes_list: impl AsRef<str>) -> Vec<String> {
-    prefixes_list
-        .as_ref()
-        .split(':')
-        .map(str::to_string)
+    std::env::split_paths(prefixes_list.as_ref())
+        .map(|path| path.to_string_lossy().into_owned())
         .collect()
 }
