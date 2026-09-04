@@ -82,28 +82,17 @@ impl Ament {
     }
 
     /// Returns a map containing resources name for key and the list of prefixes in which each resource was found for value.
-    pub fn get_resources_prefixes(
-        &self,
-        resource_type: &str,
-    ) -> HashMap<String, Vec<PathBuf>> {
+    pub fn get_resources_prefixes(&self, resource_type: &str) -> HashMap<String, Vec<PathBuf>> {
         list_all_prefixes_of_resources(resource_type, &self.prefixes)
     }
 
     /// Returns the prefix in which the given resource was found or `None` if the resource was not found.
-    pub fn find_resource(
-        &self,
-        resource_name: &str,
-        resource_type: &str,
-    ) -> Option<PathBuf> {
+    pub fn find_resource(&self, resource_name: &str, resource_type: &str) -> Option<PathBuf> {
         find_resource(resource_name, resource_type, &self.prefixes)
     }
 
     /// Returns true if the given resource exists in the ament resource index, returns false otherwise.
-    pub fn has_resource(
-        &self,
-        resource_name: &str,
-        resource_type: &str,
-    ) -> bool {
+    pub fn has_resource(&self, resource_name: &str, resource_type: &str) -> bool {
         has_resource(resource_name, resource_type, &self.prefixes)
     }
 }

@@ -2,8 +2,8 @@
 //!
 //! Prefixes are system paths separated by a colon.
 
-use std::path::PathBuf;
 use crate::AMENT_PREFIX_PATH_ENV_VAR;
+use std::path::PathBuf;
 
 /// Returns the list of prefixes defined in the `AMENT_PREFIX_PATH` environment variable.
 ///
@@ -19,9 +19,7 @@ pub fn get_search_paths() -> Result<Vec<PathBuf>, std::env::VarError> {
 /// # Errors
 ///
 /// A `std::env::VarError` is returned if the given environment variable is not set.
-pub fn get_search_paths_from_var(
-    env_var: &str,
-) -> Result<Vec<PathBuf>, std::env::VarError> {
+pub fn get_search_paths_from_var(env_var: &str) -> Result<Vec<PathBuf>, std::env::VarError> {
     Ok(get_search_paths_from(&std::env::var(env_var)?))
 }
 

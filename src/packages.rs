@@ -8,5 +8,9 @@ pub fn get_package_share_directory(
     package_name: &str,
     prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
 ) -> Option<PathBuf> {
-    Some(get_resource_prefix(package_name, "packages", prefixes)?.join("share").join(package_name))
+    Some(
+        get_resource_prefix(package_name, "packages", prefixes)?
+            .join("share")
+            .join(package_name),
+    )
 }

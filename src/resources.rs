@@ -21,8 +21,7 @@ pub(crate) fn filter_path(path: impl AsRef<Path>) -> bool {
 pub(crate) fn list_all_prefixes(
     resource_type: &str,
     prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
-) -> impl Iterator<Item = (PathBuf, PathBuf)>
-{
+) -> impl Iterator<Item = (PathBuf, PathBuf)> {
     let resource_type = resource_type.to_owned();
 
     prefixes.into_iter().map(move |prefix| {
@@ -46,7 +45,7 @@ pub(crate) fn list_all_prefixes_of_resources_disjointly(
             .min_depth(1)
             .max_depth(1)
             .into_iter()
-            .filter_entry(|e| filter_path(&e.path()))
+            .filter_entry(|e| filter_path(e.path()))
             .filter_map(Result::ok)
             .map(move |entry| {
                 (
@@ -85,9 +84,11 @@ pub fn list_all_prefixes_of_resource(
     resource_name: &str,
     resource_type: &str,
     prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
-) -> impl Iterator<Item = PathBuf>{
+) -> impl Iterator<Item = PathBuf> {
+    let resource_name = resource_name.to_owned();
+
     list_all_prefixes_of_resources_disjointly(resource_type, prefixes)
-        .filter(move |(found_name, _)| found_name == resource_name)
+        .filter(move |(found_name, _)| found_name == &resource_name)
         .map(|(_, prefix)| prefix)
 }
 
@@ -112,7 +113,7 @@ pub fn get_resource(
     prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
 ) -> Option<(std::io::Result<Vec<u8>>, PathBuf)> {
     list_all_prefixes(resource_type, prefixes)
-        .map(|(prefix, path)| (prefix, path.join(&resource_name)))
+        .map(|(prefix, path)| (prefix, path.join(resource_name)))
         .filter(|(_, path)| filter_path(path))
         .map(|(prefix, path)| {
             let mut buffer = vec![];
@@ -139,7 +140,7 @@ pub fn find_resource(
     prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
 ) -> Option<PathBuf> {
     list_all_prefixes(resource_type, prefixes)
-        .map(|(prefix, path)| (prefix, path.join(&resource_name)))
+        .map(|(prefix, path)| (prefix, path.join(resource_name)))
         .filter(|(_, path)| filter_path(path))
         .map(|(prefix, _)| prefix)
         .next()
