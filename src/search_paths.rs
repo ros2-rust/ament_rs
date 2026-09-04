@@ -2,6 +2,7 @@
 //!
 //! Prefixes are system paths separated by a colon.
 
+use std::path::PathBuf;
 use crate::AMENT_PREFIX_PATH_ENV_VAR;
 
 /// Returns the list of prefixes defined in the `AMENT_PREFIX_PATH` environment variable.
@@ -9,7 +10,7 @@ use crate::AMENT_PREFIX_PATH_ENV_VAR;
 /// # Errors
 ///
 /// A `std::env::VarError` is returned if the `AMENT_PREFIX_PATH` environment variable is not set.
-pub fn get_search_paths() -> Result<Vec<String>, std::env::VarError> {
+pub fn get_search_paths() -> Result<Vec<PathBuf>, std::env::VarError> {
     get_search_paths_from_var(AMENT_PREFIX_PATH_ENV_VAR)
 }
 
@@ -19,14 +20,12 @@ pub fn get_search_paths() -> Result<Vec<String>, std::env::VarError> {
 ///
 /// A `std::env::VarError` is returned if the given environment variable is not set.
 pub fn get_search_paths_from_var(
-    env_var: impl AsRef<str>,
-) -> Result<Vec<String>, std::env::VarError> {
-    Ok(get_search_paths_from(std::env::var(env_var.as_ref())?))
+    env_var: &str,
+) -> Result<Vec<PathBuf>, std::env::VarError> {
+    Ok(get_search_paths_from(&std::env::var(env_var)?))
 }
 
 /// Returns the list of prefixes defined in the given string.
-pub fn get_search_paths_from(prefixes_list: impl AsRef<str>) -> Vec<String> {
-    std::env::split_paths(prefixes_list.as_ref())
-        .map(|path| path.to_string_lossy().into_owned())
-        .collect()
+pub fn get_search_paths_from(prefixes_list: &str) -> Vec<PathBuf> {
+    std::env::split_paths(prefixes_list).collect()
 }

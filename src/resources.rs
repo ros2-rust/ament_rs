@@ -1,10 +1,10 @@
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
-pub(crate) fn filter_path(path: impl AsRef<std::path::Path>) -> bool {
+pub(crate) fn filter_path(path: impl AsRef<Path>) -> bool {
     let path = path.as_ref();
     path.is_file()
         && path
@@ -18,30 +18,29 @@ pub(crate) fn filter_path(path: impl AsRef<std::path::Path>) -> bool {
             .unwrap_or(false)
 }
 
-pub(crate) fn list_all_prefixes<'a>(
-    resource_type: impl AsRef<str> + 'a,
-    prefixes: impl IntoIterator<Item = impl AsRef<str> + 'a> + 'a,
-) -> impl Iterator<Item = (String, PathBuf)> + 'a {
+pub(crate) fn list_all_prefixes(
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> impl Iterator<Item = (PathBuf, PathBuf)>
+{
+    let resource_type = resource_type.to_owned();
+
     prefixes.into_iter().map(move |prefix| {
-        (
-            prefix.as_ref().to_string(),
-            [
-                prefix.as_ref(),
-                "share",
-                "ament_index",
-                "resource_index",
-                resource_type.as_ref(),
-            ]
-            .iter()
-            .collect(),
-        )
+        let prefix = prefix.as_ref();
+        let resource_index_path = prefix
+            .join("share")
+            .join("ament_index")
+            .join("resource_index")
+            .join(&resource_type);
+
+        (prefix.to_path_buf(), resource_index_path)
     })
 }
 
-pub(crate) fn list_all_prefixes_of_resources_disjointly<'a>(
-    resource_type: impl AsRef<str> + 'a,
-    prefixes: impl IntoIterator<Item = impl AsRef<str> + 'a> + 'a,
-) -> impl Iterator<Item = (String, String)> + 'a {
+pub(crate) fn list_all_prefixes_of_resources_disjointly(
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> impl Iterator<Item = (String, PathBuf)> {
     list_all_prefixes(resource_type, prefixes).flat_map(|(prefix, path)| {
         WalkDir::new(path)
             .min_depth(1)
@@ -58,18 +57,18 @@ pub(crate) fn list_all_prefixes_of_resources_disjointly<'a>(
     })
 }
 
-pub fn list_prefix_of_resources<'a>(
-    resource_type: impl AsRef<str> + 'a,
-    prefixes: impl IntoIterator<Item = impl AsRef<str> + 'a> + 'a,
-) -> impl Iterator<Item = (String, String)> + 'a {
+pub fn list_prefix_of_resources(
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> impl Iterator<Item = (String, PathBuf)> {
     list_all_prefixes_of_resources_disjointly(resource_type, prefixes)
         .unique_by(|(resource_name, _)| resource_name.clone())
 }
 
 pub fn list_all_prefixes_of_resources(
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> HashMap<String, Vec<String>> {
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> HashMap<String, Vec<PathBuf>> {
     list_all_prefixes_of_resources_disjointly(resource_type, prefixes).fold(
         HashMap::new(),
         |mut prefixes_of_resources, (resource_name, prefix)| {
@@ -82,38 +81,38 @@ pub fn list_all_prefixes_of_resources(
     )
 }
 
-pub fn list_all_prefixes_of_resource<'a>(
-    resource_name: impl AsRef<str> + 'a,
-    resource_type: impl AsRef<str> + 'a,
-    prefixes: impl IntoIterator<Item = impl AsRef<str> + 'a> + 'a,
-) -> impl Iterator<Item = String> + 'a {
+pub fn list_all_prefixes_of_resource(
+    resource_name: &str,
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> impl Iterator<Item = PathBuf>{
     list_all_prefixes_of_resources_disjointly(resource_type, prefixes)
-        .filter(move |(found_name, _)| found_name == resource_name.as_ref())
+        .filter(move |(found_name, _)| found_name == resource_name)
         .map(|(_, prefix)| prefix)
 }
 
 pub fn get_resources_prefixes(
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> HashMap<String, Vec<String>> {
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> HashMap<String, Vec<PathBuf>> {
     list_all_prefixes_of_resources(resource_type, prefixes)
 }
 
 pub fn get_resource_prefix(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> Option<String> {
+    resource_name: &str,
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> Option<PathBuf> {
     list_all_prefixes_of_resource(resource_name, resource_type, prefixes).next()
 }
 
 pub fn get_resource(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> Option<(std::io::Result<Vec<u8>>, String)> {
+    resource_name: &str,
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> Option<(std::io::Result<Vec<u8>>, PathBuf)> {
     list_all_prefixes(resource_type, prefixes)
-        .map(|(prefix, path)| (prefix, path.join(resource_name.as_ref())))
+        .map(|(prefix, path)| (prefix, path.join(&resource_name)))
         .filter(|(_, path)| filter_path(path))
         .map(|(prefix, path)| {
             let mut buffer = vec![];
@@ -128,28 +127,28 @@ pub fn get_resource(
 }
 
 pub fn get_resources_prefix(
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> HashMap<String, String> {
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> HashMap<String, PathBuf> {
     list_prefix_of_resources(resource_type, prefixes).collect()
 }
 
 pub fn find_resource(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
-) -> Option<String> {
+    resource_name: &str,
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> Option<PathBuf> {
     list_all_prefixes(resource_type, prefixes)
-        .map(|(prefix, path)| (prefix, path.join(resource_name.as_ref())))
+        .map(|(prefix, path)| (prefix, path.join(&resource_name)))
         .filter(|(_, path)| filter_path(path))
         .map(|(prefix, _)| prefix)
         .next()
 }
 
 pub fn has_resource(
-    resource_name: impl AsRef<str>,
-    resource_type: impl AsRef<str>,
-    prefixes: impl IntoIterator<Item = impl AsRef<str>>,
+    resource_name: &str,
+    resource_type: &str,
+    prefixes: impl IntoIterator<Item = impl AsRef<Path>>,
 ) -> bool {
     find_resource(resource_name, resource_type, prefixes).is_some()
 }

@@ -1,4 +1,4 @@
-//! This crate is a client for ament which is a system for cataloging and referencing resources distributed by software packages used by ROS2.
+//! This crate is a client for ament, which is a system for cataloging and referencing resources distributed by software packages used by ROS 2.
 //!
 //! # Examples
 //!
@@ -13,21 +13,16 @@
 //!
 //! This snippet will print a list of packages with the prefixes they were found in, depending of the value of the `AMENT_PREFIX_PATH` environment variable on your system.
 //!
-//! ```none
+//! ```text
 //! {
 //!     "ros_core": [
-//!         "/opt/ros/crystal",
-//!         "/opt/ros/bouncy",
+//!         "/opt/ros/rolling",
 //!     ],
-//!     "console_bridge_vendor": [
-//!         "/opt/ros/dashing",
-//!         "/opt/ros/crystal",
+//!     "rcl_interfaces": [
+//!         "/your/workspace/install/rcl_interfaces",
+//!         "/opt/ros/rolling",
 //!     ],
-//!     "ament_cmake_export_interfaces": [
-//!         "/opt/ros/dashing",
-//!         "/opt/ros/crystal",
-//!         "/opt/ros/bouncy",
-//!     ],
+//!     ...
 //! }
 //! ```
 //!
