@@ -112,7 +112,10 @@ pub fn find_resource_in(
 /// # Errors
 ///
 /// A `std::env::VarError` is returned if the `AMENT_PREFIX_PATH` environment variable is not set.
-pub fn find_resource(resource_name: &str, resource_type: &str) -> Result<Option<Vec<PathBuf>>, std::env::VarError> {
+pub fn find_resource(
+    resource_name: &str,
+    resource_type: &str,
+) -> Result<Option<Vec<PathBuf>>, std::env::VarError> {
     Ok(find_resource_in(resource_name, resource_type, &prefixes()?))
 }
 
@@ -360,7 +363,10 @@ mod tests {
         )]);
 
         let prefixes = fixture.prefixes();
-        std::env::set_var(AMENT_PREFIX_PATH_ENV_VAR, std::env::join_paths(&prefixes).unwrap());
+        std::env::set_var(
+            AMENT_PREFIX_PATH_ENV_VAR,
+            std::env::join_paths(&prefixes).unwrap(),
+        );
 
         assert_eq!(
             find_package_in("rcl_interfaces", &prefixes),
