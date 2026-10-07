@@ -477,7 +477,7 @@ mod tests {
 
         assert!(marker_path.exists());
         assert!(marker_path.is_file());
-        assert_eq!(std::fs::read_to_string(&marker_path)?, "");
+        assert_eq!(fs::read_to_string(&marker_path)?, "");
         Ok(())
     }
 
@@ -497,7 +497,7 @@ mod tests {
             install_base.join("share/ament_index/resource_index/test_resource/test_package");
 
         assert_eq!(
-            std::fs::read_to_string(&marker_path)?,
+            fs::read_to_string(&marker_path)?,
             "test_resource/foo.yaml;test_resource/bar.yaml"
         );
         Ok(())
@@ -513,7 +513,7 @@ mod tests {
         let marker_path =
             install_base.join("share/ament_index/resource_index/packages/test_package");
 
-        assert_eq!(std::fs::read_to_string(&marker_path)?, "");
+        assert_eq!(fs::read_to_string(&marker_path)?, "");
         Ok(())
     }
 }
