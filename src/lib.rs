@@ -25,10 +25,13 @@
 //! }
 //! ```
 //!
+//! For more information:
+//! - Design doc: https://github.com/ament/ament_cmake/blob/2366f15479e37d552d4e225f09ccef1c6ccc8c4e/ament_cmake_core/doc/resource_index.md
 
 use std::collections::HashMap;
-use std::fs;
-use std::path::PathBuf;
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::{Path, PathBuf};
 
 /// This constant defines the name of the environment variable containing the list of ament resource index prefixes, which is `AMENT_PREFIX_PATH`
 pub const AMENT_PREFIX_PATH_ENV_VAR: &str = "AMENT_PREFIX_PATH";
@@ -173,6 +176,42 @@ pub fn package_share_dirs_in(package: &str, prefixes: &[PathBuf]) -> Option<Vec<
 /// A `std::env::VarError` is returned if the `AMENT_PREFIX_PATH` environment variable is not set.
 pub fn package_share_dirs(package: &str) -> Result<Option<Vec<PathBuf>>, std::env::VarError> {
     Ok(package_share_dirs_in(package, &prefixes()?))
+}
+
+/// Register a package resource of a specific type with the ament index.
+///
+/// # Errors
+///
+/// A `io::Error` if the resource file cannot be created
+pub fn register_resource(
+    install_base: impl AsRef<Path>,
+    resource_type: &str,
+    package_name: &str,
+    content: &str,
+) -> Result<(), io::Error> {
+    let resource_dir = install_base
+        .as_ref()
+        .join("share")
+        .join("ament_index")
+        .join("resource_index")
+        .join(resource_type);
+    fs::create_dir_all(&resource_dir)?;
+    let resource_file_path = resource_dir.join(package_name);
+    let mut file = File::create(&resource_file_path)?;
+    file.write_all(content.as_bytes())?;
+    Ok(())
+}
+
+/// Register a package name with the ament index's `packages` resource type. Equivalent of CMake's `ament_index_register_package()`.
+///
+/// # Errors
+///
+/// A `io::Error` if the resource file cannot be created
+pub fn register_package(
+    install_base: impl AsRef<Path>,
+    package_name: &str,
+) -> Result<(), io::Error> {
+    register_resource(install_base, "packages", package_name, "")
 }
 
 #[cfg(test)]
@@ -424,5 +463,57 @@ mod tests {
             find_resource_in("my_plugin", "plugins", &prefixes),
             Some(vec![fs.path().join("prefix")])
         );
+    }
+
+    #[test]
+    fn test_register_resource() -> Result<(), Box<dyn std::error::Error>> {
+        let tmp = assert_fs::TempDir::new()?;
+        let install_base = tmp.path();
+
+        register_resource(install_base, "packages", "test_package", "")?;
+
+        let marker_path =
+            install_base.join("share/ament_index/resource_index/packages/test_package");
+
+        assert!(marker_path.exists());
+        assert!(marker_path.is_file());
+        assert_eq!(fs::read_to_string(&marker_path)?, "");
+        Ok(())
+    }
+
+    #[test]
+    fn test_register_resource_with_content() -> Result<(), Box<dyn std::error::Error>> {
+        let tmp = assert_fs::TempDir::new()?;
+        let install_base = tmp.path();
+
+        register_resource(
+            install_base,
+            "test_resource",
+            "test_package",
+            "test_resource/foo.yaml;test_resource/bar.yaml",
+        )?;
+
+        let marker_path =
+            install_base.join("share/ament_index/resource_index/test_resource/test_package");
+
+        assert_eq!(
+            fs::read_to_string(&marker_path)?,
+            "test_resource/foo.yaml;test_resource/bar.yaml"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_register_package() -> Result<(), Box<dyn std::error::Error>> {
+        let tmp = assert_fs::TempDir::new()?;
+        let install_base = tmp.path();
+
+        register_package(install_base, "test_package")?;
+
+        let marker_path =
+            install_base.join("share/ament_index/resource_index/packages/test_package");
+
+        assert_eq!(fs::read_to_string(&marker_path)?, "");
+        Ok(())
     }
 }
