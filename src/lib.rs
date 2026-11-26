@@ -71,7 +71,11 @@ pub fn resources_in(resource_type: &str, prefixes: &[PathBuf]) -> HashMap<String
             if let Ok(dirs) = fs::read_dir(resource_index_path) {
                 dirs.into_iter()
                     .flatten()
-                    .filter(|entry| entry.path().is_file())
+                    // Skip dotfiles such as .DS_Store, like ament_index_python and ament_index_cpp
+                    .filter(|entry| {
+                        !entry.file_name().to_string_lossy().starts_with('.')
+                            && entry.path().is_file()
+                    })
                     .for_each(|e| {
                         map.entry(e.file_name().to_string_lossy().into_owned())
                             .or_default()
@@ -430,6 +434,22 @@ mod tests {
 
         assert!(packages_in(&prefixes).is_empty());
         assert_eq!(find_package_in("not_a_package", &prefixes), None);
+    }
+
+    #[test]
+    fn resources_ignore_dotfiles() {
+        let fixture = AmentIndexTestFixture::new(vec![
+            ("my_pkg", vec!["prefix"]),
+            (".DS_Store", vec!["prefix"]),
+            ("._my_pkg", vec!["prefix"]),
+        ]);
+        let prefixes = fixture.prefixes();
+
+        assert_eq!(
+            packages_in(&prefixes).into_keys().collect::<Vec<_>>(),
+            vec!["my_pkg".to_string()]
+        );
+        assert_eq!(find_package_in(".DS_Store", &prefixes), None);
     }
 
     #[test]
