@@ -47,11 +47,15 @@ pub fn prefixes() -> Result<Vec<PathBuf>, std::env::VarError> {
 
 /// Returns the list of prefixes defined in the given environment variable.
 ///
+/// Empty entries are skipped.
+///
 /// # Errors
 ///
 /// A `std::env::VarError` is returned if the given environment variable is not set.
 pub fn prefixes_from_env_var(env_var: &str) -> Result<Vec<PathBuf>, std::env::VarError> {
-    Ok(std::env::split_paths(&std::env::var(env_var)?).collect())
+    Ok(std::env::split_paths(&std::env::var(env_var)?)
+        .filter(|path| !path.as_os_str().is_empty())
+        .collect())
 }
 
 /// Returns all resources of the given type found under the provided ament prefixes.
@@ -411,6 +415,23 @@ mod tests {
             find_package_in("rcl_interfaces", &prefixes),
             find_package("rcl_interfaces").unwrap()
         );
+    }
+
+    #[test]
+    fn prefixes_skip_empty_entries() {
+        let env_var = "AMENT_RS_TEST_PREFIXES_SKIP_EMPTY_ENTRIES";
+
+        std::env::set_var(
+            env_var,
+            std::env::join_paths(["", "/a", "", "/b", ""]).unwrap(),
+        );
+        assert_eq!(
+            prefixes_from_env_var(env_var).unwrap(),
+            vec![PathBuf::from("/a"), PathBuf::from("/b")]
+        );
+
+        std::env::set_var(env_var, "");
+        assert!(prefixes_from_env_var(env_var).unwrap().is_empty());
     }
 
     #[test]
